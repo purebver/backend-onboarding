@@ -44,7 +44,7 @@ router.post("/login", async (req, res) => {
   const { username, password } = req.body;
   const user = users.find((user) => user.username === username);
 
-  if (!user || !bcrypt.compare(password, user.password)) {
+  if (!user || !(await bcrypt.compare(password, user.password))) {
     return res
       .status(401)
       .json({ message: "유저가 존재하지 않거나 비밀번호가 다릅니다." });
