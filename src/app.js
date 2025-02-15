@@ -9,7 +9,7 @@ const PORT = process.env.PORT;
 
 app.use(express.json());
 
-app.get("/", [AuthRouter]);
+app.use("/", [AuthRouter]);
 
 app.listen(PORT, () => {
   console.log(PORT, "포트로 서버가 열림");
