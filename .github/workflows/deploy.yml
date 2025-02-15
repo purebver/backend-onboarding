@@ -1,0 +1,29 @@
+name: deploy onboarding
+
+on:
+  push:
+    branches:
+      - main # 🚀 main 브랜치에 push되면 실행됨
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # GitHub Actions가 실행될 환경
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3 # 코드를 가져옴
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          cd /home/ubuntu/backend-onboarding  # 프로젝트 폴더로 이동
+          git pull origin main  # 최신 코드 가져오기
+          npm install  # 의존성 설치
+          pm2 restart app  # 서버 재시작 (PM2 사용)
+          EOF
