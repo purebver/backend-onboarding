@@ -10,14 +10,64 @@ const router = express.Router();
 //유저들 정보 저장
 const users = [];
 
-/*
-회원가입
-username, password, nickname: 받은정보
-hashedPassword: 해싱된 password
-user: 유저 데이터
-*/
+/**
+ * @swagger
+ * /signup:
+ *  post:
+ *    summary: 회원가입 API
+ *    description: 새로운 유저 등록
+ *    tags: [Auth]
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              username:
+ *                type: string
+ *              password:
+ *                type: string
+ *              nickname:
+ *                type: string
+ *    responses:
+ *      201:
+ *        description: 회원가입 성공
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                username:
+ *                  type: string
+ *                  example: "name"
+ *                nickname:
+ *                  type: string
+ *                  example: "gooddog"
+ *                authorities:
+ *                  type: array
+ *                  items:
+ *                    type: object
+ *                    properties:
+ *                      authorityName:
+ *                        type: string
+ *                        example: "ROLE_USER"
+ *      400:
+ *        description: 입력 데이터 오류
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                message:
+ *                  type: string
+ *                  example: "필수입력란에 공란이 있습니다."
+ */
 router.post("/signup", async (req, res) => {
   const { username, password, nickname } = req.body;
+  if (!username || !password || !nickname) {
+    return res.status(400).json({ message: "필수입력란에 공란이 있습니다." });
+  }
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const user = {
@@ -35,11 +85,46 @@ router.post("/signup", async (req, res) => {
   });
 });
 
-/*
-로그인
-username, password: 받은정보
-token: jwt토큰
-*/
+/**
+ * @swagger
+ * /login:
+ *  post:
+ *    summary: 로그인 API
+ *    description: 아이디와 비밀번호를 검증하고 jwt토큰 발급
+ *    tags: [Auth]
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              username:
+ *                type: string
+ *              password:
+ *                type: string
+ *    responses:
+ *      200:
+ *        description: 로그인 성공 (token반환)
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                token:
+ *                  type: string
+ *                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3RVc2VyIiwiaWF0IjoxNjc4NzYzMjAwLCJleHAiOjE2Nzg3NjY4MDB9.4x6GpBjyDq5I5VsK6o7PqjD5of2nX-yA1Bj8_7L7_yM"
+ *      401:
+ *        description: 인증 실패
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                message:
+ *                  type: string
+ *                  example: "유저가 존재하지 않거나 비밀번호가 다릅니다."
+ */
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
   const user = users.find((user) => user.username === username);
